@@ -31,7 +31,7 @@ export default function Createprofile({ mobile }: { mobile: string }) {
   // -------------------------
   const handleNext = async () => {
  
-      router.("/app/dashboard/instruction");
+      router.push("/dashboard/instruction");
  
   }
   return (

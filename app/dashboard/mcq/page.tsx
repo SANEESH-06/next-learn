@@ -1,203 +1,182 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/navbar";
+import Image from "next/image";
+
+/* ============================
+   Correct API Types
+=============================== */
+
+interface Option {
+  id: number;
+  option: string;
+  is_correct: boolean;
+  image?: string | null;
+}
 
 interface Question {
-  id: number;
-  question_text: string;
-  image_url?: string | null;
-  options: string[];
+  question_id: number;
+  number: number;
+  question: string;
+  comprehension?: string | null;
+  image?: string | null;
+  options: Option[];
 }
 
-interface QuestionListResponse {
-  message: string;
-  success: boolean;
-  questions_count: number;
-  total_marks: number;
-  total_time: number;
-  time_for_each_question: number;
-  mark_per_each_answer: number;
-  instruction: string;
-  questions: Question[];
-}
-
-export default function Mcq() {
-  const router = useRouter();
-
-  const [data, setData] = useState<QuestionListResponse | null>(null);
+export default function Page() {
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [isOpen, setIsOpen] = useState(false); // 🔥 NEW: popup state
 
-  // ---------------------------------------------------
-  // AUTH CHECK + API FETCH
-  // ---------------------------------------------------
+  /* ============================
+     Fetch Questions
+  =============================== */
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
-    // If no token, redirect to login
     if (!token) {
-      router.push("/login");
+      setError("No token found — please login again.");
+      setLoading(false);
       return;
     }
 
     const fetchQuestions = async () => {
-      setLoading(true);
-
       try {
         const res = await fetch(
           "https://nexlearn.noviindusdemosites.in/question/list",
           {
-            method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
             },
           }
         );
 
-        if (res.status === 401) {
-          // Invalid or expired token
-          localStorage.clear();
-          router.push("/login");
+        const data = await res.json();
+
+        if (!data.success) {
+          setError(data.message || "Invalid or expired token.");
           return;
         }
 
-        const responseData: QuestionListResponse = await res.json();
-
-        if (!res.ok || !responseData.success) {
-          throw new Error(responseData.message || "Failed to load questions");
-        }
-
-        setData(responseData);
+        setQuestions(data.questions);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error occurred");
+        setError("Network error while loading questions.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchQuestions();
-  }, [router]);
+  }, []);
 
-  // Loading UI
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Loading questions...</p>
-      </div>
-    );
-  }
+  /* ============================
+     UI RENDER
+  =============================== */
 
-  // Error UI
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => router.push("/login")}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>No questions available</p>
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------
-  // RENDER MCQ UI
-  // ---------------------------------------------------
   return (
-    <div className="min-h-screen bg-blue-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h1 className="text-2xl font-bold mb-2">MCQ Exam</h1>
-          <p className="text-gray-600 mb-4">{data.instruction}</p>
+    <div className="min-h-screen flex flex-col bg-blue-50">
+      <Navbar />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-500">Questions</p>
-              <p className="font-bold">{data.questions_count}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Total Marks</p>
-              <p className="font-bold">{data.total_marks}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Total Time</p>
-              <p className="font-bold">{data.total_time} mins</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Per Question</p>
-              <p className="font-bold">{data.time_for_each_question}s</p>
-            </div>
-          </div>
-        </div>
+      <div className="w-[1146px] py-2 pl-7">
+        {loading && <p className="py-10">Loading...</p>}
+        {error && <p className="py-10 text-red-600">{error}</p>}
 
-        {/* Questions */}
-        <div className="space-y-4">
-          {data.questions.map((question, idx) => (
-            <div key={question.id} className="bg-white rounded-lg shadow p-6">
-              <p className="font-semibold mb-4">
-                {idx + 1}. {question.question_text}
+        {!loading && questions.length > 0 && (
+          <div>
+            {/* Read Paragraph Button */}
+            <button
+              onClick={() => setIsOpen(true)}
+              className="w-[293px] h-[44px] rounded-md p-1 gap-2 bg-[#146180] flex items-center"
+            >
+              <Image
+                alt=""
+                width={1000}
+                height={1000}
+                src={"/icons/ArticleNyTimes.png"}
+                className="w-6 h-6"
+              />
+              <p className="text-white">Read Comprehensive Paragraph</p>
+              <Image
+                alt=""
+                width={1000}
+                height={1000}
+                src={"/icons/Polygon 3.png"}
+                className="w-3 h-4"
+              />
+            </button>
+
+            <div className="bg-white rounded-lg p-4 mt-3">
+              {/* Question Title */}
+              <p className="font-medium py-2 text-lg">
+                {questions[0].number}. {questions[0].question}
               </p>
 
-              {question.image_url && (
-                <img
-                  src={question.image_url}
-                  alt="Question"
-                  className="mb-4 max-w-md rounded"
-                />
-              )}
+              {/* Image */}
+              <Image
+                src={questions[0].image || "/image.png"}
+                alt="Question Image"
+                width={600}
+                height={400}
+                className="mt-3 w-[288px] h-[161px]"
+              />
+            </div>
 
-              <div className="space-y-2">
-                {question.options.map((option, optIdx) => (
-                  <label
-                    key={optIdx}
-                    className="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50"
+            {/* Options */}
+            <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-2">
+                {questions[0].options.map((opt, index) => (
+                  <div
+                    key={opt.id}
+                    className="p-2 bg-white hover:bg-blue-200 rounded cursor-pointer flex items-start gap-3"
                   >
-                    <input
-                      type="radio"
-                      name={`question-${question.id}`}
-                      value={option}
-                      className="mr-3"
-                    />
-                    <span>{option}</span>
-                  </label>
+                    {/* Option Number */}
+                    <span className="font-semibold">{index + 1}.</span>
+
+                    {/* Option Text */}
+                    <span>{opt.option}</span>
+                  </div>
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Submit / Logout */}
-        <div className="mt-6 flex gap-2">
-          <button className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Submit
-          </button>
-
-          <button
-            onClick={() => {
-              localStorage.clear();
-              router.push("/login");
-            }}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-          >
-            Logout
-          </button>
-        </div>
+            <div className="flex gap-5 py-4 items-center  justify-between">
+              <button className="w-[368px] h-[46px] rounded-sm bg-[#800080] text-white">Mark for review</button>
+              <button className="w-[368px] h-[46px] rounded-sm bg-[#CECECE] text-black">Pervious</button>
+              <button className="w-[368px] h-[46px] rounded-sm bg-[#1C3141] text-white">Next</button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20  flex items-center justify-center z-50"
+          onClick={() => setIsOpen(false)} // click outside to close
+        >
+          <div
+            className="bg-white w-[600px] max-h-[80vh] p-5 rounded-lg shadow-lg overflow-auto animate-fadeIn"
+            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+          >
+            <h2 className="text-xl font-semibold mb-3">Comprehension</h2>
+
+            <div
+              dangerouslySetInnerHTML={{
+                __html:
+                  questions[0].comprehension || "<p>No content found.</p>",
+              }}
+            />
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsOpen(false)}
+              className="mt-5 px-4 py-2 bg-blue-600 text-white rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
