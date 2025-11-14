@@ -36,7 +36,6 @@ export default function Page() {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-
     if (!token) {
       setError("No token found — please login again.");
       setLoading(false);
@@ -68,6 +67,7 @@ export default function Page() {
       } finally {
         setLoading(false);
       }
+      console.log("questions =", questions);
     };
 
     fetchQuestions();
@@ -78,7 +78,7 @@ export default function Page() {
   =============================== */
 
   return (
-    <div className="min-h-screen flex flex-col bg-blue-50">
+    <div className="min-h-auto flex flex-col bg-blue-50">
       <Navbar />
       <div className="flex flex-row gap- p-8 justify-between py-2">
         <div className="w-[1146px] flex   ">
@@ -131,19 +131,25 @@ export default function Page() {
                     className="mt-3 w-[288px] h-[161px]"
                   />
                 </div>
-                {/* Options */}
                 <div className="mt-4 space-y-2">
                   <div className="mt-4  space-y-2">
                     {questions[0].options.map((opt, index) => (
                       <div
                         key={opt.id}
-                        className="p-2  bg-white h-[54] py-5 items-center hover:bg-blue-200 rounded cursor-pointer flex  gap-4"
+                        className="p-2  bg-white h-[54] py-5 justify-between items-center hover:bg-blue-200 rounded cursor-pointer flex  gap-4"
                       >
-                        {/* Option Number */}
-                        <span className="font-semibold">{index + 1}</span>
-
-                        {/* Option Text */}
-                        <span>{opt.option}</span>
+                        <div className="flex gap-4">
+                          <span className="font-semibold">{index + 1}</span>
+                          <span>{opt.option}</span>
+                        </div>
+                        <div className="p-6">
+                          <input
+                            type="radio"
+                            name="question-0"
+                            value={opt.id}
+                            className="w-5 h-5  accent-[#1C3141]"
+                          />
+                        </div>
                       </div>
                     ))}
                     <div className="flex gap-5 py-4 items-center  justify-between">
@@ -178,13 +184,39 @@ export default function Page() {
                   src={"/icons/Timer.png"}
                   className="w-5 h-5"
                 />
-                <p>{totalTime || "-- : --"}</p>
+                <p>{totalTime || "-- : --"}:45</p>
               </div>
             </div>
           </div>
-          <div className="p-1 w-[674.001220703125px] h-[670.99755859375px] bg-red-100">
-            <div className="flex rounded-md shadow-sm  items-center justify-center bg-white w-[57.14689636230469px] h-[57.14689636230469px] ">
-              1
+          <div className=" w-[674.001px] flex flex-row   ">
+            <div className="flex flex-row  w-[674.001px] min-h-[600.997px] p-1">
+              {questions.map((q) => (
+                <div
+                  key={q.question_id}
+                  className="flex flex-row  text-wrap rounded-md shadow-sm items-center justify-center bg-white w-[57.14px] h-[57.14px] m-2"
+                >
+                  {q.number}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-between gap-4 text-sm h-8  px-2  items-end">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-[#CECECE] rounded-[5px] bg-[#4CAF50]" />
+              <p>Attended</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-[#CECECE] rounded-[5px] bg-red-500" />
+              <p>Not Attended</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-[#CECECE] rounded-[5px] bg-red-500" />
+              <p>Marked For Review</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-[#CECECE] rounded-[5px] bg-red-500" />
+              <p>Answered and Marked For Review</p>
             </div>
           </div>
         </div>
