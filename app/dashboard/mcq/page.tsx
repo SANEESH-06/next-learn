@@ -22,6 +22,8 @@ interface Question {
   comprehension?: string | null;
   image?: string | null;
   options: Option[];
+  total_time: number;
+  questions_count: number;
 }
 
 export default function Page() {
@@ -29,10 +31,9 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false); // 🔥 NEW: popup state
+  const [totalTime, setTotalTime] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
-  /* ============================
-     Fetch Questions
-  =============================== */
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
@@ -61,6 +62,7 @@ export default function Page() {
         }
 
         setQuestions(data.questions);
+        setTotalTime(data.total_time);
       } catch (err) {
         setError("Network error while loading questions.");
       } finally {
@@ -78,75 +80,114 @@ export default function Page() {
   return (
     <div className="min-h-screen flex flex-col bg-blue-50">
       <Navbar />
+      <div className="flex flex-row gap- p-8 justify-between py-2">
+        <div className="w-[1146px] flex   ">
+          {loading && <p className="py-10">Loading...</p>}
 
-      <div className="w-[1146px] py-2 pl-7">
-        {loading && <p className="py-10">Loading...</p>}
-        {error && <p className="py-10 text-red-600">{error}</p>}
+          {error && <p className="py-10 text-red-600">{error}</p>}
 
-        {!loading && questions.length > 0 && (
-          <div>
-            {/* Read Paragraph Button */}
-            <button
-              onClick={() => setIsOpen(true)}
-              className="w-[293px] h-[44px] rounded-md p-1 gap-2 bg-[#146180] flex items-center"
-            >
-              <Image
-                alt=""
-                width={1000}
-                height={1000}
-                src={"/icons/ArticleNyTimes.png"}
-                className="w-6 h-6"
-              />
-              <p className="text-white">Read Comprehensive Paragraph</p>
-              <Image
-                alt=""
-                width={1000}
-                height={1000}
-                src={"/icons/Polygon 3.png"}
-                className="w-3 h-4"
-              />
-            </button>
+          {!loading && questions.length > 0 && (
+            <div>
+              <div className="flex py-4 items-center justify-between">
+                <p>Ancient Indian History MCQ</p>
+                <div className="bg-white w-[69px] flex items-center p-2 h-[29px] rounded-sm shadow-sm">
+                  01/100{" "}
+                </div>
+              </div>
+              {/* Read Paragraph Button */}
+              <div className="bg-white py-4  h-[315px]">
+                <button
+                  onClick={() => setIsOpen(true)}
+                  className="w-[293px]  ml-4  h-[44px] rounded-md p-1 gap-2 bg-[#146180] flex items-center"
+                >
+                  <Image
+                    alt=""
+                    width={1000}
+                    height={1000}
+                    src={"/icons/ArticleNyTimes.png"}
+                    className="w-6 h-6"
+                  />
+                  <p className="text-white">Read Comprehensive Paragraph</p>
+                  <Image
+                    alt=""
+                    width={1000}
+                    height={1000}
+                    src={"/icons/Polygon 3.png"}
+                    className="w-3 h-4"
+                  />
+                </button>
+                <div className="bg-white rounded-lg p-4 ">
+                  {/* Question Title */}
+                  <p className="font-medium py-2 text-lg">
+                    {questions[0].number}. {questions[0].question}
+                  </p>
 
-            <div className="bg-white rounded-lg p-4 mt-3">
-              {/* Question Title */}
-              <p className="font-medium py-2 text-lg">
-                {questions[0].number}. {questions[0].question}
-              </p>
+                  {/* Image */}
+                  <Image
+                    src={questions[0].image || "/image.png"}
+                    alt="Question Image"
+                    width={600}
+                    height={400}
+                    className="mt-3 w-[288px] h-[161px]"
+                  />
+                </div>
+                {/* Options */}
+                <div className="mt-4 space-y-2">
+                  <div className="mt-4  space-y-2">
+                    {questions[0].options.map((opt, index) => (
+                      <div
+                        key={opt.id}
+                        className="p-2  bg-white h-[54] py-5 items-center hover:bg-blue-200 rounded cursor-pointer flex  gap-4"
+                      >
+                        {/* Option Number */}
+                        <span className="font-semibold">{index + 1}</span>
 
-              {/* Image */}
-              <Image
-                src={questions[0].image || "/image.png"}
-                alt="Question Image"
-                width={600}
-                height={400}
-                className="mt-3 w-[288px] h-[161px]"
-              />
-            </div>
-
-            {/* Options */}
-            <div className="mt-4 space-y-2">
-              <div className="mt-4 space-y-2">
-                {questions[0].options.map((opt, index) => (
-                  <div
-                    key={opt.id}
-                    className="p-2 bg-white hover:bg-blue-200 rounded cursor-pointer flex items-start gap-3"
-                  >
-                    {/* Option Number */}
-                    <span className="font-semibold">{index + 1}.</span>
-
-                    {/* Option Text */}
-                    <span>{opt.option}</span>
+                        {/* Option Text */}
+                        <span>{opt.option}</span>
+                      </div>
+                    ))}
+                    <div className="flex gap-5 py-4 items-center  justify-between">
+                      <button className="w-[368px] h-[46px] rounded-sm bg-[#800080] text-white">
+                        Mark for review
+                      </button>
+                      <button className="w-[368px] h-[46px] rounded-sm bg-[#CECECE] text-black">
+                        Pervious
+                      </button>
+                      <button className="w-[368px] h-[46px] rounded-sm bg-[#1C3141] text-white">
+                        Next
+                      </button>
+                    </div>
                   </div>
-                ))}
+                </div>
+              </div>{" "}
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="flex justify-between py-4">
+            <p>Question No. Sheet:</p>
+
+            <div className="flex gap-2 items-center">
+              <p>Remaining Time :</p>
+
+              <div className="bg-[#063870] text-white w-[96] h-[29] gap-2 flex items-center p-2 rounded-sm shadow-sm ">
+                <Image
+                  alt=""
+                  width={1000}
+                  height={1000}
+                  src={"/icons/Timer.png"}
+                  className="w-5 h-5"
+                />
+                <p>{totalTime || "-- : --"}</p>
               </div>
             </div>
-            <div className="flex gap-5 py-4 items-center  justify-between">
-              <button className="w-[368px] h-[46px] rounded-sm bg-[#800080] text-white">Mark for review</button>
-              <button className="w-[368px] h-[46px] rounded-sm bg-[#CECECE] text-black">Pervious</button>
-              <button className="w-[368px] h-[46px] rounded-sm bg-[#1C3141] text-white">Next</button>
+          </div>
+          <div className="p-1 w-[674.001220703125px] h-[670.99755859375px] bg-red-100">
+            <div className="flex rounded-md shadow-sm  items-center justify-center bg-white w-[57.14689636230469px] h-[57.14689636230469px] ">
+              1
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {isOpen && (
