@@ -107,6 +107,6 @@ import React from 'react'
 
 export default function page() {
   return (
-    <div><p className='text-8xl'>ANSWER</p></div>
+    <div><p className='flex items-center justify-center text-8xl'>ANSWER</p></div>
   )
 }
