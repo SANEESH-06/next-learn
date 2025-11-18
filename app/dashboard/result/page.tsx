@@ -102,11 +102,82 @@
 //   );
 // }
 
-
-import React from 'react'
-
+import React from "react";
+import Navbar from "../components/navbar";
+import Image from "next/image";
 export default function page() {
   return (
-    <div><p className='flex items-center justify-center text-8xl'>ANSWER</p></div>
-  )
+    <div className=" min-h-auto flex flex-col bg-blue-50">
+      <Navbar />
+      <div className="flex flex-col gap-4 justify-center items-center py-[33px]">
+        <div className=" flex justify-center items-center rounded-lg bg-from bg-gradient-to-r from-[#146180] to-[#1C3141] w-[429px] h-[150px]">
+          <div className="flex flex-col justify-center items-center text-white">
+            <p>Marks Obtained:</p>
+            <p className="text-6xl"> 100/100</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 w-105 ">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center gap-2">
+              <Image
+                src={"/icons/Group 1000007271.png"}
+                alt=""
+                width={1000}
+                height={1000}
+                className="w-10 h-10"
+              />
+              <p>Total Questions:</p>
+            </div>
+            <p>100</p>
+          </div>
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center gap-2">
+              <Image
+                src={"/icons/Group 1000007271 (1).png"}
+                alt=""
+                width={1000}
+                height={1000}
+                className="w-10 h-10"
+              />
+
+              <p>Correct Answers:</p>
+            </div>
+            <p>50</p>
+          </div>
+          <div className="flex  items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Image
+                src={"/icons/Group 1000007271 (2).png"}
+                alt=""
+                width={1000}
+                height={1000}
+                className="w-10 h-10"
+              />
+
+              <p>Incorrect Answers:</p>
+            </div>
+            <p>40</p>
+          </div>
+          <div className="flex  items-center justify-between">
+            <div className=" flex items-center gap-2">
+              <Image
+                src={"/icons/Group 1000007271 (3).png"}
+                alt=""
+                width={1000}
+                height={1000}
+                className="w-10 h-10"
+              />
+              <p>Not Attended Questions:</p>
+            </div>
+
+            <p>10</p>
+          </div>
+        </div>
+        <div>
+          
+        </div>
+        <button className="w-105 bg-[#20394d] text-white h-[48px]  rounded-lg">Done</button>
+      </div>
+    </div>
+  );
 }
