@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Option {
   id: number;
@@ -30,17 +31,13 @@ export default function Page() {
   const [review, setReview] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
 
-  // Stores selected answers
   const [answers, setAnswers] = useState<{ [key: number]: number | null }>({});
 
-  // Stores which questions were visited
   const [visited, setVisited] = useState<{ [key: number]: boolean }>({});
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const route = useRouter();
-  // ----------------------------
-  // FETCH QUESTIONS
-  // ----------------------------
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -78,29 +75,23 @@ export default function Page() {
     fetchQuestions();
   }, []);
 
-  // ----------------------------
-  // STORE SELECTED OPTION
-  // ----------------------------
+
   const handleSelect = (questionId: number, optionId: number) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: optionId,
     }));
 
-    // If user selects answer → color becomes green
     setVisited((prev) => ({
       ...prev,
       [questionId]: true,
     }));
   };
 
-  // ----------------------------
-  // NEXT QUESTION
-  // ----------------------------
+
   const handleNext = () => {
     const qId = questions[currentIndex].question_id;
 
-    // Mark current question as visited when moving forward
     setVisited((prev) => ({
       ...prev,
       [qId]: true,
@@ -111,9 +102,7 @@ export default function Page() {
     }
   };
 
-  // ----------------------------
-  // PREVIOUS QUESTION
-  // ----------------------------
+
   const handlePrevious = () => {
     const qId = questions[currentIndex].question_id;
 
@@ -127,9 +116,7 @@ export default function Page() {
     }
   };
 
-  // ----------------------------
-  // RIGHT SIDE — BOX COLOR LOGIC
-  // ----------------------------
+
   const getBoxColor = (qId: number) => {
     const isAnswered = answers[qId];
     const isVisited = visited[qId];
@@ -142,54 +129,56 @@ export default function Page() {
 
     if (isReviewMarked) return "bg-[#800080] text-white";
 
-    if (isVisited) return "bg-[#EE3535] text-white"; // NOT answered after visiting → RED
+    if (isVisited) return "bg-[#EE3535] text-white"; 
 
-    return "bg-white text-black"; // DEFAULT
+    return "bg-white text-black"; 
   };
 
-  //submit//
 
-  const handleSubmit = async () => {
-    const token = localStorage.getItem("accessToken");
+const handleSubmit = async () => {
+  const token = localStorage.getItem("accessToken");
 
-    if (!token) {
-      alert("No token found — please login again.");
+  if (!token) {
+    toast("No token found — please login again.");
+    return;
+  }
+
+  const formattedAnswers = questions.map((q) => ({
+    question_id: q.question_id,
+    selected_option_id: answers[q.question_id] || null,
+  }));
+
+  const formData = new FormData();
+  formData.append("answers", JSON.stringify(formattedAnswers));
+
+  try {
+    const res = await fetch(
+      "https://nexlearn.noviindusdemosites.in/answers/submit",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+      toast(data.message || "Submission failed");
       return;
     }
 
-    const formattedAnswers = questions.map((q) => ({
-      question_id: q.question_id,
-      selected_option_id: answers[q.question_id] || null,
-    }));
+    toast("Test submitted successfully!");
 
-    const formData = new FormData();
-    formData.append("answers", JSON.stringify(formattedAnswers));
+    localStorage.setItem("exam_history_id", data.exam_history_id);
 
-    try {
-      const res = await fetch(
-        "https://nexlearn.noviindusdemosites.in/answers/submit",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+    route.push(`/dashboard/result?history=${data.exam_history_id}`);
 
-      const data = await res.json();
+  } catch (err) {
+    toast("Network error while submitting test.");
+  }
+};
 
-      if (data.success) {
-        alert("Test submitted successfully!");
-      } else {
-        alert(data.message || "Submission failed");
-      }
-    } catch (err) {
-      alert("Network error while submitting test.");
-    }
-    route.push("/dashboard/result");
-
-  };
 
   return (
     <div className="min-h-auto flex flex-col bg-blue-50">
@@ -211,7 +200,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* MAIN QUESTION */}
               <div className="bg-white py-4 h-[315px]">
                 <button
                   onClick={() => setIsOpen(true)}
@@ -249,7 +237,6 @@ export default function Page() {
                   />
                 </div>
 
-                {/* OPTIONS */}
                 <div className="mt-4 space-y-2">
                   {questions[currentIndex].options.map((opt, index) => (
                     <div
@@ -308,7 +295,6 @@ export default function Page() {
           )}
         </div>
 
-        {/* RIGHT SIDE QUESTION NUMBERS */}
         <div>
           <div className="flex justify-between py-4">
             <p>Question No. Sheet:</p>
@@ -344,7 +330,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* LEGEND */}
           <div className="flex justify-between gap-4 text-sm h-8 px-2 items-end">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-[#4CAF50] rounded" />
@@ -369,7 +354,6 @@ export default function Page() {
         </div>
       </div>
 
-      {/* COMPREHENSION POPUP */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 flex items-center justify-center z-50"
@@ -399,7 +383,6 @@ export default function Page() {
         </div>
       )}
 
-      {/* REVIEW / SUBMIT */}
       {review && (
         <div
           className="fixed inset-0 bg-black/20 flex items-center justify-center z-50"

@@ -15,32 +15,68 @@ export default function Createprofile({ mobile }: { mobile: string }) {
 
   const router = useRouter();
 
-  // -------------------------
-  // IMAGE HANDLER
-  // -------------------------
-  // const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (file) {
-  //     setImage(file);
-  //     setPreview(URL.createObjectURL(file));
-  //   }
-  // };
+ 
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
 
-  // -------------------------
-  // CREATE PROFILE
-  // -------------------------
+ 
   const handleNext = async () => {
- 
+    if (!name || !email || !qualification || !image) {
+      toast("All fields including profile image are required");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("mobile", mobile);
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("qualification", qualification);
+      formData.append("image", image);
+
+      const res = await fetch(
+        "https://nexlearn.noviindusdemosites.in/auth/create-profile",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.message || "Profile creation failed");
+        setLoading(false);
+        return;
+      }
+
+      toast("Profile created successfully!");
+
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+
       router.push("/dashboard/instruction");
- 
-  }
+    } catch (error) {
+      toast("Network error! Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col px-7 py-0 w-full space-y-6 relative">
       <p className="text-[#000] w-full text-[23px] font-semibold">
         Add Your Details
       </p>
 
-      {/* Image Upload */}
       <div className="flex flex-col items-center">
         <label htmlFor="imageUpload" className="cursor-pointer">
           {preview ? (
@@ -70,12 +106,11 @@ export default function Createprofile({ mobile }: { mobile: string }) {
           id="imageUpload"
           type="file"
           accept="image/*"
-          // onChange={handleImageChange}
+          onChange={handleImageChange}
           className="hidden"
         />
       </div>
 
-      {/* Inputs */}
       <div className="max-h-40 space-y-5">
         <div className="flex flex-col">
           <label className="text-gray-800 left-10 top-49 text-[12px] p-1 bg-white absolute font-medium">
@@ -117,7 +152,6 @@ export default function Createprofile({ mobile }: { mobile: string }) {
         </div>
       </div>
 
-      {/* Submit Button */}
       <button
         type="submit"
         className="relative bottom-0 flex items-center justify-center bg-[#1C3141] text-white rounded-lg hover:bg-[#16232e] transition w-[339px] h-[45px]"
